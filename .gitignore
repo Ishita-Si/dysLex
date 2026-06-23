@@ -1,0 +1,29 @@
+# Python generated files
+__pycache__/
+*.py[cod]
+*.pyo
+.agents/*
+# Runtime logs
+logs/*.log
+
+# Local environments
+.venv/
+venv/
+env/
+.env
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+
+# Dataset contents are kept local; .gitkeep files preserve folder structure.
+datasets/reading/*
+datasets/writing/*
+datasets/typing/*
+!datasets/reading/.gitkeep
+!datasets/writing/.gitkeep
+!datasets/typing/.gitkeep
+
+# Model artifacts are generated in later phases.
+models/*
+!models/.gitkeep
+

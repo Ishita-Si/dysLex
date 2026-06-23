@@ -1,0 +1,89 @@
+[
+  {
+    "case_id": "full_low_risk",
+    "reading": {
+      "fixation_duration_mean": 210,
+      "fixation_duration_std": 48,
+      "fixation_count": 78,
+      "saccade_length_mean": 8.2,
+      "saccade_velocity_mean": 35,
+      "regression_count": 4,
+      "reading_time_seconds": 62,
+      "blink_rate": 0.11
+    },
+    "writing": {
+      "stroke_irregularity": 0.22,
+      "letter_spacing_variance": 0.2,
+      "baseline_drift": 0.15,
+      "letter_reversal_count": 0,
+      "word_alignment_error": 0.14,
+      "pressure_variability": 0.24
+    },
+    "typing": {
+      "mean_hold_time_ms": 82,
+      "mean_flight_time_ms": 105,
+      "pause_rate": 0.07,
+      "backspace_rate": 0.03,
+      "typing_speed_wpm": 49,
+      "latency_variability_ms": 32
+    }
+  },
+  {
+    "case_id": "full_moderate_risk",
+    "reading": {
+      "fixation_duration_mean": 270,
+      "fixation_duration_std": 76,
+      "fixation_count": 108,
+      "saccade_length_mean": 6.2,
+      "saccade_velocity_mean": 27,
+      "regression_count": 9,
+      "reading_time_seconds": 92,
+      "blink_rate": 0.17
+    },
+    "writing": {
+      "stroke_irregularity": 0.5,
+      "letter_spacing_variance": 0.45,
+      "baseline_drift": 0.42,
+      "letter_reversal_count": 2,
+      "word_alignment_error": 0.36,
+      "pressure_variability": 0.48
+    },
+    "typing": {
+      "mean_hold_time_ms": 118,
+      "mean_flight_time_ms": 158,
+      "pause_rate": 0.2,
+      "backspace_rate": 0.11,
+      "typing_speed_wpm": 33,
+      "latency_variability_ms": 70
+    }
+  },
+  {
+    "case_id": "full_high_risk",
+    "reading": {
+      "fixation_duration_mean": 340,
+      "fixation_duration_std": 118,
+      "fixation_count": 145,
+      "saccade_length_mean": 4.8,
+      "saccade_velocity_mean": 19,
+      "regression_count": 17,
+      "reading_time_seconds": 132,
+      "blink_rate": 0.25
+    },
+    "writing": {
+      "stroke_irregularity": 0.78,
+      "letter_spacing_variance": 0.74,
+      "baseline_drift": 0.68,
+      "letter_reversal_count": 5,
+      "word_alignment_error": 0.62,
+      "pressure_variability": 0.72
+    },
+    "typing": {
+      "mean_hold_time_ms": 152,
+      "mean_flight_time_ms": 230,
+      "pause_rate": 0.36,
+      "backspace_rate": 0.22,
+      "typing_speed_wpm": 21,
+      "latency_variability_ms": 118
+    }
+  }
+]

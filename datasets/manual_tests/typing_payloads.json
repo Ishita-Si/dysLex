@@ -1,0 +1,29 @@
+[
+  {
+    "case_id": "typing_low_risk",
+    "mean_hold_time_ms": 82,
+    "mean_flight_time_ms": 105,
+    "pause_rate": 0.07,
+    "backspace_rate": 0.03,
+    "typing_speed_wpm": 49,
+    "latency_variability_ms": 32
+  },
+  {
+    "case_id": "typing_moderate_risk",
+    "mean_hold_time_ms": 118,
+    "mean_flight_time_ms": 158,
+    "pause_rate": 0.2,
+    "backspace_rate": 0.11,
+    "typing_speed_wpm": 33,
+    "latency_variability_ms": 70
+  },
+  {
+    "case_id": "typing_high_risk",
+    "mean_hold_time_ms": 152,
+    "mean_flight_time_ms": 230,
+    "pause_rate": 0.36,
+    "backspace_rate": 0.22,
+    "typing_speed_wpm": 21,
+    "latency_variability_ms": 118
+  }
+]

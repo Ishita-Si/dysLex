@@ -1,0 +1,20 @@
+[
+  {
+    "case_id": "fusion_low_risk",
+    "reading_probability": 0.08,
+    "writing_probability": 0.04,
+    "typing_probability": 0.06
+  },
+  {
+    "case_id": "fusion_moderate_risk",
+    "reading_probability": 0.58,
+    "writing_probability": 0.42,
+    "typing_probability": 0.51
+  },
+  {
+    "case_id": "fusion_high_risk",
+    "reading_probability": 0.92,
+    "writing_probability": 0.88,
+    "typing_probability": 0.95
+  }
+]

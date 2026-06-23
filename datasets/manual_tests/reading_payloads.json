@@ -1,0 +1,35 @@
+[
+  {
+    "case_id": "reading_low_risk",
+    "fixation_duration_mean": 210,
+    "fixation_duration_std": 48,
+    "fixation_count": 78,
+    "saccade_length_mean": 8.2,
+    "saccade_velocity_mean": 35,
+    "regression_count": 4,
+    "reading_time_seconds": 62,
+    "blink_rate": 0.11
+  },
+  {
+    "case_id": "reading_moderate_risk",
+    "fixation_duration_mean": 270,
+    "fixation_duration_std": 76,
+    "fixation_count": 108,
+    "saccade_length_mean": 6.2,
+    "saccade_velocity_mean": 27,
+    "regression_count": 9,
+    "reading_time_seconds": 92,
+    "blink_rate": 0.17
+  },
+  {
+    "case_id": "reading_high_risk",
+    "fixation_duration_mean": 340,
+    "fixation_duration_std": 118,
+    "fixation_count": 145,
+    "saccade_length_mean": 4.8,
+    "saccade_velocity_mean": 19,
+    "regression_count": 17,
+    "reading_time_seconds": 132,
+    "blink_rate": 0.25
+  }
+]

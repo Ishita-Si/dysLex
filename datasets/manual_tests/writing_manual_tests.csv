@@ -1,0 +1,4 @@
+case_id,stroke_irregularity,letter_spacing_variance,baseline_drift,letter_reversal_count,word_alignment_error,pressure_variability
+writing_low_risk,0.22,0.2,0.15,0,0.14,0.24
+writing_moderate_risk,0.5,0.45,0.42,2,0.36,0.48
+writing_high_risk,0.78,0.74,0.68,5,0.62,0.72

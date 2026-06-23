@@ -1,0 +1,31 @@
+name: dyslexai
+channels:
+  - conda-forge
+  - pytorch
+  - defaults
+dependencies:
+  - python=3.11
+  - numpy
+  - pandas
+  - matplotlib
+  - seaborn
+  - plotly
+  - scikit-learn
+  - pytorch
+  - torchvision
+  - xgboost
+  - fastapi
+  - uvicorn
+  - pydantic
+  - jupyter
+  - openpyxl
+  - tabulate
+  - pillow
+  - scipy
+  - tqdm
+  - pip
+  - pip:
+      - opencv-python
+      - catboost
+      - shap
+

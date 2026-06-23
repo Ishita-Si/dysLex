@@ -1,0 +1,29 @@
+[
+  {
+    "case_id": "writing_low_risk",
+    "stroke_irregularity": 0.22,
+    "letter_spacing_variance": 0.2,
+    "baseline_drift": 0.15,
+    "letter_reversal_count": 0,
+    "word_alignment_error": 0.14,
+    "pressure_variability": 0.24
+  },
+  {
+    "case_id": "writing_moderate_risk",
+    "stroke_irregularity": 0.5,
+    "letter_spacing_variance": 0.45,
+    "baseline_drift": 0.42,
+    "letter_reversal_count": 2,
+    "word_alignment_error": 0.36,
+    "pressure_variability": 0.48
+  },
+  {
+    "case_id": "writing_high_risk",
+    "stroke_irregularity": 0.78,
+    "letter_spacing_variance": 0.74,
+    "baseline_drift": 0.68,
+    "letter_reversal_count": 5,
+    "word_alignment_error": 0.62,
+    "pressure_variability": 0.72
+  }
+]

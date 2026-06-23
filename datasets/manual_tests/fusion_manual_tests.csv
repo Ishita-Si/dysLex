@@ -1,0 +1,4 @@
+case_id,reading_probability,writing_probability,typing_probability
+fusion_low_risk,0.08,0.04,0.06
+fusion_moderate_risk,0.58,0.42,0.51
+fusion_high_risk,0.92,0.88,0.95

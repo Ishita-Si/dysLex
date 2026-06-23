@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DysLexAI MVP</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #1f2933;
+        --muted: #637381;
+        --line: #d9e2ec;
+        --surface: #ffffff;
+        --band: #f5f7fa;
+        --accent: #0f766e;
+        --risk: #b42318;
+        --warn: #b54708;
+        --soft-warn: #fffaeb;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        color: var(--ink);
+        background: var(--band);
+      }
+
+      header {
+        padding: 20px 28px;
+        border-bottom: 1px solid var(--line);
+        background: var(--surface);
+      }
+
+      h1 {
+        margin: 0 0 4px;
+        font-size: 24px;
+      }
+
+      header p,
+      .hint {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      main {
+        display: grid;
+        grid-template-columns: minmax(320px, 1fr) minmax(300px, 420px);
+        gap: 20px;
+        padding: 20px;
+      }
+
+      .notice {
+        margin: 20px 20px 0;
+        padding: 12px 14px;
+        border: 1px solid #fedf89;
+        border-radius: 8px;
+        background: var(--soft-warn);
+        color: var(--warn);
+        font-weight: 700;
+      }
+
+      section {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 18px;
+      }
+
+      h2 {
+        margin: 0 0 14px;
+        font-size: 18px;
+      }
+
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+
+      button {
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--ink);
+        border-radius: 6px;
+        padding: 9px 12px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      button.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: white;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(180px, 1fr));
+        gap: 12px;
+      }
+
+      fieldset {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 12px;
+        margin: 0 0 14px;
+      }
+
+      legend {
+        padding: 0 6px;
+        font-weight: 700;
+      }
+
+      label {
+        display: grid;
+        gap: 5px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      input {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 9px 10px;
+        color: var(--ink);
+      }
+
+      .result {
+        display: grid;
+        gap: 12px;
+      }
+
+      .metric-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--line);
+        font-size: 14px;
+      }
+
+      .metric-row strong {
+        color: var(--ink);
+      }
+
+      .score {
+        font-size: 44px;
+        font-weight: 800;
+        color: var(--accent);
+      }
+
+      .score.risk {
+        color: var(--risk);
+      }
+
+      .pill {
+        display: inline-block;
+        width: fit-content;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #e6fffa;
+        color: #134e4a;
+        font-weight: 700;
+      }
+
+      .pill.risk {
+        background: #fee4e2;
+        color: var(--risk);
+      }
+
+      .pill.moderate {
+        background: #fffaeb;
+        color: var(--warn);
+      }
+
+      pre {
+        white-space: pre-wrap;
+        word-break: break-word;
+        background: #111827;
+        color: #f9fafb;
+        padding: 12px;
+        border-radius: 8px;
+        min-height: 160px;
+      }
+
+      @media (max-width: 900px) {
+        main,
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>DysLexAI MVP</h1>
+      <p>Recall-first dyslexia risk screening demo. Not a medical diagnosis.</p>
+    </header>
+
+    <div class="notice">
+      Note: this MVP uses synthetic realistic data for writing and typing, and real ETDD70 labels as reading anchors. Using this to demonstrate workflow, not clinical performance.
+    </div>
+
+    <main>
+      <section>
+        <h2>Full Assessment</h2>
+        <div class="toolbar">
+          <button type="button" onclick="loadCase('low')">Low Risk Sample</button>
+          <button type="button" onclick="loadCase('moderate')">Moderate Sample</button>
+          <button type="button" onclick="loadCase('high')">High Risk Sample</button>
+          <button type="button" class="primary" onclick="submitAssessment()">Run Assessment</button>
+        </div>
+
+        <fieldset>
+          <legend>Reading</legend>
+          <div class="grid" id="readingFields"></div>
+        </fieldset>
+        <fieldset>
+          <legend>Writing</legend>
+          <div class="grid" id="writingFields"></div>
+        </fieldset>
+        <fieldset>
+          <legend>Typing</legend>
+          <div class="grid" id="typingFields"></div>
+        </fieldset>
+      </section>
+
+      <section>
+        <h2>Result</h2>
+        <div class="result">
+          <span id="label" class="pill">Ready</span>
+          <div id="score" class="score">--</div>
+          <p id="summary" class="hint">Start the FastAPI server, choose a sample, then run assessment.</p>
+          <div id="breakdown"></div>
+          <p id="accountability" class="hint"></p>
+          <pre id="raw">{}</pre>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const apiBase = "http://127.0.0.1:8000";
+      const fields = {
+        reading: [
+          "fixation_duration_mean",
+          "fixation_duration_std",
+          "fixation_count",
+          "saccade_length_mean",
+          "saccade_velocity_mean",
+          "regression_count",
+          "reading_time_seconds",
+          "blink_rate",
+        ],
+        writing: [
+          "stroke_irregularity",
+          "letter_spacing_variance",
+          "baseline_drift",
+          "letter_reversal_count",
+          "word_alignment_error",
+          "pressure_variability",
+        ],
+        typing: [
+          "mean_hold_time_ms",
+          "mean_flight_time_ms",
+          "pause_rate",
+          "backspace_rate",
+          "typing_speed_wpm",
+          "latency_variability_ms",
+        ],
+      };
+
+      const samples = {
+        low: {
+          reading: [210, 48, 78, 8.2, 35, 4, 62, 0.11],
+          writing: [0.22, 0.2, 0.15, 0, 0.14, 0.24],
+          typing: [82, 105, 0.07, 0.03, 49, 32],
+        },
+        moderate: {
+          reading: [270, 76, 108, 6.2, 27, 9, 92, 0.17],
+          writing: [0.5, 0.45, 0.42, 2, 0.36, 0.48],
+          typing: [118, 158, 0.2, 0.11, 33, 70],
+        },
+        high: {
+          reading: [340, 118, 145, 4.8, 19, 17, 132, 0.25],
+          writing: [0.78, 0.74, 0.68, 5, 0.62, 0.72],
+          typing: [152, 230, 0.36, 0.22, 21, 118],
+        },
+      };
+
+      function titleize(name) {
+        return name.replaceAll("_", " ");
+      }
+
+      function renderFields() {
+        for (const [group, names] of Object.entries(fields)) {
+          const root = document.getElementById(`${group}Fields`);
+          root.innerHTML = names
+            .map(
+              (name) => `
+              <label>${titleize(name)}
+                <input type="number" step="0.01" id="${group}_${name}" />
+              </label>
+            `
+            )
+            .join("");
+        }
+      }
+
+      function loadCase(kind) {
+        for (const [group, values] of Object.entries(samples[kind])) {
+          fields[group].forEach((name, index) => {
+            document.getElementById(`${group}_${name}`).value = values[index];
+          });
+        }
+      }
+
+      function collectGroup(group) {
+        const output = {};
+        for (const name of fields[group]) {
+          output[name] = Number(document.getElementById(`${group}_${name}`).value);
+        }
+        return output;
+      }
+
+      async function submitAssessment() {
+        const payload = {
+          reading: collectGroup("reading"),
+          writing: collectGroup("writing"),
+          typing: collectGroup("typing"),
+        };
+        const label = document.getElementById("label");
+        const score = document.getElementById("score");
+        const summary = document.getElementById("summary");
+        const raw = document.getElementById("raw");
+        const breakdown = document.getElementById("breakdown");
+        const accountability = document.getElementById("accountability");
+        label.textContent = "Running";
+        label.className = "pill";
+        breakdown.innerHTML = "";
+        accountability.textContent = "";
+
+        try {
+          const response = await fetch(`${apiBase}/predict-full`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const result = await response.json();
+          if (!response.ok) {
+            throw new Error(JSON.stringify(result));
+          }
+          const atRisk = result.final_risk_prediction === "At Risk";
+          const moderate = result.final_risk_band === "Moderate Risk";
+          label.textContent = result.final_risk_prediction;
+          label.className = atRisk ? "pill risk" : moderate ? "pill moderate" : "pill";
+          score.textContent = `${Math.round(result.final_risk_probability * 100)}%`;
+          score.className = atRisk ? "score risk" : "score";
+          summary.textContent = result.fusion_factors.join(", ");
+          breakdown.innerHTML = renderBreakdown(result.modality_scores);
+          accountability.textContent =
+            result.accountability?.data_basis ||
+            "Prototype result; not validated for diagnosis.";
+          raw.textContent = JSON.stringify(result, null, 2);
+        } catch (error) {
+          label.textContent = "Error";
+          label.className = "pill risk";
+          summary.textContent = "Could not reach the API. Start uvicorn and try again.";
+          raw.textContent = String(error);
+        }
+      }
+
+      function renderBreakdown(scores) {
+        return Object.entries(scores)
+          .map(([name, value]) => {
+            const percent = Math.round(value.risk_probability * 100);
+            return `
+              <div class="metric-row">
+                <strong>${name}</strong>
+                <span>${percent}% · ${value.risk_band}</span>
+              </div>
+            `;
+          })
+          .join("");
+      }
+
+      renderFields();
+      loadCase("moderate");
+    </script>
+  </body>
+</html>
