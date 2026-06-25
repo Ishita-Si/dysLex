@@ -135,6 +135,112 @@ The Phase 1 pipeline produces:
 - Research-grade markdown documentation with natural-language observations.
 - Placeholder figures when datasets have not yet been placed.
 
+
+## Phase 2.5 Detection Intelligence Layer
+
+Phase 2.5 turns trained model probabilities into a complete inference response for dashboards and downstream intervention systems. It does **not** retrain models. Instead, it loads the existing trained reading, writing, typing, and fusion model artifacts from `models/mvp/`.
+
+The intelligence layer now generates:
+
+- reading, writing, typing, and fused risk probabilities
+- overall risk level and confidence
+- modality severity scores
+- non-dyslexic reference-baseline comparison
+- rule-based learning weaknesses
+- learning-profile dimensions
+- plain-English top contributing factors
+- intervention category identifiers only, not exercises
+
+Generate or refresh the non-dyslexic reference baseline from processed feature tables:
+
+```bash
+python -m src.mvp.intelligence
+```
+
+This writes:
+
+```text
+models/mvp/baseline_reference.json
+```
+
+The baseline contains the mean, median, and standard deviation for every numeric feature among rows with `label == 0`.
+
+Start the API after trained model artifacts exist:
+
+```bash
+uvicorn src.mvp.api:app --reload
+```
+
+Phase 2.5 endpoints:
+
+- `POST /predict-full` returns the complete learning-profile response.
+- `POST /learning-profile` is an explicit alias for dashboard and intervention consumers.
+- `POST /baseline-reference/regenerate` recalculates `baseline_reference.json` from processed data.
+
+The final response shape is:
+
+```json
+{
+  "overall_risk": {
+    "score": 0.84,
+    "level": "High",
+    "confidence": 0.91
+  },
+  "modality_scores": {
+    "reading": 0.88,
+    "writing": 0.74,
+    "typing": 0.69
+  },
+  "baseline_comparison": {
+    "reading_time_seconds": {
+      "user": 110,
+      "reference_mean": 74.13,
+      "difference": 35.87,
+      "severity": "Moderate"
+    }
+  },
+  "learning_profile": {
+    "reading_fluency": "High",
+    "letter_reversal": "Moderate",
+    "spelling_accuracy": "Moderate",
+    "typing_accuracy": "Low",
+    "phonological_processing": "High"
+  },
+  "top_contributing_factors": [
+    "Reading completion time is above the reference baseline."
+  ],
+  "recommended_modules": [
+    "reading_fluency_training",
+    "letter_reversal_training",
+    "phonics_training"
+  ]
+}
+```
+
+See `reports/detection_intelligence_layer.md` for implementation details.
+
+
+## Domain-Shift Audit and Real-Validation Recalibration
+
+If real dashboard features begin to diverge from the synthetic-heavy training distribution, run the domain audit before changing model training:
+
+```bash
+python -m src.mvp.domain_audit
+```
+
+The audit compares training features, inference request features, feature order, data types, missing values, synthetic vs real-anchor distributions, and manual inference-proxy samples. It also regenerates the non-dyslexic baseline with normal operating ranges and writes threshold/calibration status reports without blindly retraining models.
+
+Generated deliverables:
+
+- `reports/mvp/domain_audit/distribution_mismatch_report.md`
+- `reports/mvp/domain_audit/threshold_optimization_report.md`
+- `reports/mvp/domain_audit/calibration_report.md`
+- `reports/mvp/domain_audit/before_after_comparison_report.md`
+- `reports/figures/mvp/domain_audit/*_distribution.png` (generated locally; binary plots are not committed)
+- `models/mvp/domain_thresholds.json`
+
+The current audit identifies that the committed workspace has real-anchor rows for reading but synthetic-only processed rows for writing and typing. The implemented minimum safe fix is therefore an inference feature-validation layer plus automated shift reporting. Threshold recalibration and calibration fitting are skipped unless trained model artifacts and sufficient real validation rows are present.
+
 ## Future Development Roadmap
 
 1. Add real datasets and rerun Phase 1 validation.

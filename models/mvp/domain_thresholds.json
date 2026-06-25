@@ -1,0 +1,22 @@
+{
+  "fusion": {
+    "metadata_path": "/workspace/dysLex/models/mvp/fusion_threshold.json",
+    "model_path": "/workspace/dysLex/models/mvp/fusion_model.pkl",
+    "status": "skipped_missing_artifacts"
+  },
+  "reading": {
+    "metadata_path": "/workspace/dysLex/models/mvp/reading_threshold.json",
+    "model_path": "/workspace/dysLex/models/mvp/reading_model.pkl",
+    "status": "skipped_missing_artifacts"
+  },
+  "typing": {
+    "metadata_path": "/workspace/dysLex/models/mvp/typing_threshold.json",
+    "model_path": "/workspace/dysLex/models/mvp/typing_model.pkl",
+    "status": "skipped_missing_artifacts"
+  },
+  "writing": {
+    "metadata_path": "/workspace/dysLex/models/mvp/writing_threshold.json",
+    "model_path": "/workspace/dysLex/models/mvp/writing_model.pkl",
+    "status": "skipped_missing_artifacts"
+  }
+}

@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from src.utils.config import CONFIG
+from src.mvp.intelligence import DetectionIntelligenceEngine, generate_baseline_reference
 
 app = FastAPI(
     title="DysLexAI MVP API",
@@ -42,6 +43,8 @@ def root() -> Dict[str, object]:
             "POST /predict-typing",
             "POST /predict-fusion",
             "POST /predict-full",
+            "POST /learning-profile",
+            "POST /baseline-reference/regenerate",
         ],
         "clinical_note": "Screening support only; not a medical diagnosis.",
     }
@@ -249,41 +252,38 @@ def predict_fusion(request: FusionInput) -> Dict[str, object]:
 
 @app.post("/predict-full")
 def predict_full(request: FullAssessmentInput) -> Dict[str, object]:
-    """Run reading, writing, typing, and probability-based fusion."""
+    """Run the complete detection intelligence layer for one assessment."""
 
-    reading_payload = _request_dict(request.reading)
-    writing_payload = _request_dict(request.writing)
-    typing_payload = _request_dict(request.typing)
+    return _learning_profile_response(request)
 
-    reading = _predict("reading", reading_payload)
-    writing = _predict("writing", writing_payload)
-    typing = _predict("typing", typing_payload)
-    fusion_payload = {
-        "reading_probability": float(reading["risk_probability"]),
-        "writing_probability": float(writing["risk_probability"]),
-        "typing_probability": float(typing["risk_probability"]),
-    }
-    fusion = _predict("fusion", fusion_payload)
-    return {
-        "final_risk_probability": fusion["risk_probability"],
-        "final_risk_prediction": fusion["risk_prediction"],
-        "final_risk_band": fusion["risk_band"],
-        "threshold": fusion["threshold"],
-        "confidence": fusion["confidence"],
-        "modality_scores": {
-            "reading": reading,
-            "writing": writing,
-            "typing": typing,
-        },
-        "fusion_factors": fusion["top_factors"],
-        "accountability": {
-            "evidence_level": "MVP prototype",
-            "data_basis": "Reading uses ETDD70 label anchors plus synthetic realistic features; writing and typing are synthetic realistic MVP features.",
-            "not_validated_for": "Medical diagnosis, school placement decisions, or standalone clinical screening.",
-            "recommended_use": "Demo, engineering validation, and future data collection planning.",
-        },
-        "clinical_note": "Screening support only; not a medical diagnosis.",
-    }
+
+@app.post("/learning-profile")
+def learning_profile(request: FullAssessmentInput) -> Dict[str, object]:
+    """Return explainable, intervention-ready learning profile output."""
+
+    return _learning_profile_response(request)
+
+
+@app.post("/baseline-reference/regenerate")
+def regenerate_baseline_reference() -> Dict[str, object]:
+    """Regenerate non-dyslexic reference statistics from processed datasets."""
+
+    baseline = generate_baseline_reference()
+    return {"feature_count": len(baseline), "baseline_reference": baseline}
+
+
+def _learning_profile_response(request: FullAssessmentInput) -> Dict[str, object]:
+    """Build the final Phase 2.5 dashboard response object."""
+
+    try:
+        engine = DetectionIntelligenceEngine()
+        return engine.predict_full(
+            _request_dict(request.reading),
+            _request_dict(request.writing),
+            _request_dict(request.typing),
+        )
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 def _request_dict(request: BaseModel) -> Dict[str, float]:
