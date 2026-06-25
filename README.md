@@ -219,28 +219,6 @@ The final response shape is:
 
 See `reports/detection_intelligence_layer.md` for implementation details.
 
-
-## Domain-Shift Audit and Real-Validation Recalibration
-
-If real dashboard features begin to diverge from the synthetic-heavy training distribution, run the domain audit before changing model training:
-
-```bash
-python -m src.mvp.domain_audit
-```
-
-The audit compares training features, inference request features, feature order, data types, missing values, synthetic vs real-anchor distributions, and manual inference-proxy samples. It also regenerates the non-dyslexic baseline with normal operating ranges and writes threshold/calibration status reports without blindly retraining models.
-
-Generated deliverables:
-
-- `reports/mvp/domain_audit/distribution_mismatch_report.md`
-- `reports/mvp/domain_audit/threshold_optimization_report.md`
-- `reports/mvp/domain_audit/calibration_report.md`
-- `reports/mvp/domain_audit/before_after_comparison_report.md`
-- `reports/figures/mvp/domain_audit/*_distribution.png` (generated locally; binary plots are not committed)
-- `models/mvp/domain_thresholds.json`
-
-The current audit identifies that the committed workspace has real-anchor rows for reading but synthetic-only processed rows for writing and typing. The implemented minimum safe fix is therefore an inference feature-validation layer plus automated shift reporting. Threshold recalibration and calibration fitting are skipped unless trained model artifacts and sufficient real validation rows are present.
-
 ## Future Development Roadmap
 
 1. Add real datasets and rerun Phase 1 validation.

@@ -1,9 +1,8 @@
 """Detection intelligence layer for trained DysLexAI MVP models.
 
-This module never trains models. It loads existing inference artifacts, validates
-real assessment features before prediction, compares assessments with
-non-dyslexic reference baselines, derives interpretable weaknesses, and returns
-dashboard-ready learning profiles.
+This module never trains models. It loads existing inference artifacts, compares
+assessment features with non-dyslexic reference baselines, derives interpretable
+weaknesses, and returns dashboard-ready learning profiles.
 """
 
 from __future__ import annotations
@@ -12,15 +11,16 @@ import json
 import pickle
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Mapping, Tuple
+from typing import Dict, Iterable, List, Mapping, Sequence, Tuple
 
+import numpy as np
 import pandas as pd
 
 from src.utils.config import CONFIG
 from src.utils.file_utils import ensure_directories
 
-try:  # SHAP is optional at runtime; raw values are never exposed to end users.
-    import shap  # noqa: F401
+try:  # SHAP is optional at runtime; the engine falls back to model importances.
+    import shap
 except Exception:  # pragma: no cover - import guard for lean deployments.
     shap = None
 
@@ -80,13 +80,10 @@ class DetectionIntelligenceEngine:
     def predict_full(self, reading: Mapping[str, float], writing: Mapping[str, float], typing: Mapping[str, float]) -> Dict[str, object]:
         """Return the complete dashboard-ready learning profile response."""
 
-        sanitized_reading, reading_warnings = validate_and_sanitize_features("reading", reading, self.baseline)
-        sanitized_writing, writing_warnings = validate_and_sanitize_features("writing", writing, self.baseline)
-        sanitized_typing, typing_warnings = validate_and_sanitize_features("typing", typing, self.baseline)
         modality_probs = {
-            "reading": predict_probability("reading", sanitized_reading),
-            "writing": predict_probability("writing", sanitized_writing),
-            "typing": predict_probability("typing", sanitized_typing),
+            "reading": predict_probability("reading", reading),
+            "writing": predict_probability("writing", writing),
+            "typing": predict_probability("typing", typing),
         }
         fusion_payload = {
             "reading_probability": modality_probs["reading"],
@@ -94,7 +91,7 @@ class DetectionIntelligenceEngine:
             "typing_probability": modality_probs["typing"],
         }
         overall_score = predict_probability("fusion", fusion_payload)
-        comparison = compare_with_baseline({**sanitized_reading, **sanitized_writing, **sanitized_typing}, self.baseline)
+        comparison = compare_with_baseline({**reading, **writing, **typing}, self.baseline)
         profile = infer_learning_profile(comparison, modality_probs)
         return {
             "overall_risk": {
@@ -105,34 +102,23 @@ class DetectionIntelligenceEngine:
             "modality_scores": {key: round(value, 4) for key, value in modality_probs.items()},
             "baseline_comparison": comparison,
             "learning_profile": profile,
-            "top_contributing_factors": explain_prediction(comparison),
+            "top_contributing_factors": explain_prediction(reading, writing, typing, comparison),
             "recommended_modules": map_recommendations(profile),
-            "feature_validation": reading_warnings + writing_warnings + typing_warnings,
             "clinical_note": "Screening support only; not a medical diagnosis.",
         }
-
-_MODEL_ARTIFACT_CACHE: Dict[str, ModelArtifact] = {}
 
 
 def load_model_artifact(modality: str) -> ModelArtifact:
     """Load a trained model and threshold metadata without retraining."""
 
-    cached = _MODEL_ARTIFACT_CACHE.get(modality)
-    if cached is not None:
-        return cached
-
     base = CONFIG.models_dir / "mvp"
     model_path = base / f"{modality}_model.pkl"
     metadata_path = base / f"{modality}_threshold.json"
     if not model_path.exists() or not metadata_path.exists():
-        raise FileNotFoundError(
-            f"Missing trained {modality} artifact in {base}. Run training outside inference before using this endpoint."
-        )
+        raise FileNotFoundError(f"Missing trained {modality} artifact in {base}. Run training outside inference before using this endpoint.")
     with model_path.open("rb") as handle:
         model = pickle.load(handle)
-    artifact = ModelArtifact(model=model, metadata=json.loads(metadata_path.read_text(encoding="utf-8")))
-    _MODEL_ARTIFACT_CACHE[modality] = artifact
-    return artifact
+    return ModelArtifact(model=model, metadata=json.loads(metadata_path.read_text(encoding="utf-8")))
 
 
 def predict_probability(modality: str, payload: Mapping[str, float]) -> float:
@@ -145,7 +131,7 @@ def predict_probability(modality: str, payload: Mapping[str, float]) -> float:
 
 
 def generate_baseline_reference(output_path: Path = BASELINE_PATH) -> Dict[str, Dict[str, float]]:
-    """Calculate non-dyslexic mean, spread, percentiles, and normal range."""
+    """Calculate mean, median, and standard deviation for non-dyslexic rows."""
 
     ensure_directories([output_path.parent])
     baseline: Dict[str, Dict[str, float]] = {}
@@ -160,24 +146,10 @@ def generate_baseline_reference(output_path: Path = BASELINE_PATH) -> Dict[str, 
             values = controls[feature].dropna().astype(float)
             if values.empty:
                 continue
-            mean = float(values.mean())
-            std = float(values.std(ddof=0))
-            p01 = float(values.quantile(0.01))
-            p05 = float(values.quantile(0.05))
-            p95 = float(values.quantile(0.95))
-            p99 = float(values.quantile(0.99))
             baseline[feature] = {
-                "mean": round(mean, 6),
+                "mean": round(float(values.mean()), 6),
                 "median": round(float(values.median()), 6),
-                "std": round(std, 6),
-                "min": round(float(values.min()), 6),
-                "max": round(float(values.max()), 6),
-                "p01": round(p01, 6),
-                "p05": round(p05, 6),
-                "p95": round(p95, 6),
-                "p99": round(p99, 6),
-                "normal_range": [round(mean - (2 * std), 6), round(mean + (2 * std), 6)],
-                "validation_range": [round(p01, 6), round(p99, 6)],
+                "std": round(float(values.std(ddof=0)), 6),
             }
     output_path.write_text(json.dumps(baseline, indent=2, sort_keys=True), encoding="utf-8")
     return baseline
@@ -187,42 +159,8 @@ def load_or_create_baseline(path: Path = BASELINE_PATH) -> Dict[str, Dict[str, f
     """Load the stored reference baseline or create it from processed datasets."""
 
     if path.exists():
-        baseline = json.loads(path.read_text(encoding="utf-8"))
-        if baseline and "normal_range" in next(iter(baseline.values())):
-            return baseline
+        return json.loads(path.read_text(encoding="utf-8"))
     return generate_baseline_reference(path)
-
-
-def validate_and_sanitize_features(modality: str, payload: Mapping[str, float], baseline: Mapping[str, Mapping[str, float]]) -> Tuple[Dict[str, float], List[Dict[str, object]]]:
-    """Validate inference features and impute only non-finite values to avoid crashes."""
-
-    expected = [feature for feature, meta in FEATURE_METADATA.items() if meta.get("modality") == modality]
-    sanitized: Dict[str, float] = {}
-    warnings: List[Dict[str, object]] = []
-    for feature in expected:
-        raw_value = payload.get(feature)
-        if raw_value is None:
-            fill_value = float(baseline.get(feature, {}).get("mean", 0.0))
-            sanitized[feature] = fill_value
-            warnings.append({"modality": modality, "feature": feature, "issue": "missing", "action": "imputed_reference_mean", "value": fill_value})
-            continue
-        try:
-            value = float(raw_value)
-        except (TypeError, ValueError):
-            fill_value = float(baseline.get(feature, {}).get("mean", 0.0))
-            sanitized[feature] = fill_value
-            warnings.append({"modality": modality, "feature": feature, "issue": "non_numeric", "action": "imputed_reference_mean", "value": fill_value})
-            continue
-        if pd.isna(value) or value in {float("inf"), float("-inf")}:
-            fill_value = float(baseline.get(feature, {}).get("mean", 0.0))
-            sanitized[feature] = fill_value
-            warnings.append({"modality": modality, "feature": feature, "issue": "non_finite", "action": "imputed_reference_mean", "value": fill_value})
-            continue
-        sanitized[feature] = value
-        validation_range = baseline.get(feature, {}).get("validation_range")
-        if validation_range and (value < float(validation_range[0]) or value > float(validation_range[1])):
-            warnings.append({"modality": modality, "feature": feature, "issue": "outside_reference_validation_range", "action": "warn_only_no_clip", "value": round(value, 4), "validation_range": validation_range})
-    return sanitized, warnings
 
 
 def compare_with_baseline(payload: Mapping[str, float], baseline: Mapping[str, Mapping[str, float]]) -> Dict[str, Dict[str, object]]:
@@ -241,7 +179,6 @@ def compare_with_baseline(payload: Mapping[str, float], baseline: Mapping[str, M
             "user": round(float(user_value), 4),
             "reference_mean": round(reference, 4),
             "reference_median": round(float(stats["median"]), 4),
-            "normal_range": stats.get("normal_range"),
             "difference": round(difference, 4),
             "severity": severity_for_feature(feature, z_score),
         }
@@ -271,7 +208,7 @@ def infer_learning_profile(comparison: Mapping[str, Mapping[str, object]], proba
             score[str(weakness)] += weights[str(details["severity"])]
     for modality, probability in probabilities.items():
         boost = 2 if probability >= 0.70 else 1 if probability >= 0.35 else 0
-        for meta in FEATURE_METADATA.values():
+        for feature, meta in FEATURE_METADATA.items():
             if meta.get("modality") == modality:
                 score[str(meta["weakness"])] += boost
     return {weakness: weakness_level(value) for weakness, value in score.items()}
@@ -287,7 +224,7 @@ def weakness_level(score: int) -> str:
     return "Low"
 
 
-def explain_prediction(comparison: Mapping[str, Mapping[str, object]]) -> List[str]:
+def explain_prediction(reading: Mapping[str, float], writing: Mapping[str, float], typing: Mapping[str, float], comparison: Mapping[str, Mapping[str, object]]) -> List[str]:
     """Generate the top five plain-English contributing factors."""
 
     explanations: List[Tuple[int, str]] = []

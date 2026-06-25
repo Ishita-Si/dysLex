@@ -82,17 +82,3 @@ The inference layer does not generate exercises. It maps moderate and high learn
 ```
 
 Clinical note: DysLexAI remains a screening-support prototype, not a diagnostic system.
-
-## Domain-Shift Fix Addendum
-
-A new domain audit module (`python -m src.mvp.domain_audit`) investigates the training-inference mismatch before any model changes. It verifies feature names, feature order, missing values, dtypes, and the serialized preprocessing contract. The training code saves a single sklearn `Pipeline` containing `SimpleImputer`, `StandardScaler`, and the classifier, so inference must continue loading that serialized pipeline rather than fitting new scalers.
-
-The audit found that the committed processed tables include real-anchor rows for reading but no real processed rows for writing or typing. Because the trained `.pkl` artifacts are not present in this workspace and writing/typing real validation rows are unavailable, threshold recalibration and probability calibration are reported as skipped instead of inventing new thresholds from synthetic data.
-
-The implemented minimum safe runtime fix is:
-
-1. regenerate the baseline reference with normal operating ranges and percentiles;
-2. validate all incoming inference features;
-3. impute missing or non-finite values to non-dyslexic reference means to prevent crashes;
-4. warn without clipping when values fall outside the reference validation range;
-5. produce repeatable distribution-shift, threshold, calibration, and before/after reports.
