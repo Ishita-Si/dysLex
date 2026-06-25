@@ -1,0 +1,117 @@
+{
+  "backspace_rate": {
+    "mean": 0.081265,
+    "median": 0.078063,
+    "std": 0.050958
+  },
+  "baseline_drift": {
+    "mean": 0.280254,
+    "median": 0.277509,
+    "std": 0.139433
+  },
+  "blink_rate": {
+    "mean": 0.141614,
+    "median": 0.138103,
+    "std": 0.05974
+  },
+  "fixation_count": {
+    "mean": 89.936569,
+    "median": 90.719506,
+    "std": 27.085573
+  },
+  "fixation_duration_mean": {
+    "mean": 240.509799,
+    "median": 244.17956,
+    "std": 49.90837
+  },
+  "fixation_duration_std": {
+    "mean": 58.156687,
+    "median": 55.735288,
+    "std": 22.709048
+  },
+  "latency_variability_ms": {
+    "mean": 49.952675,
+    "median": 50.36958,
+    "std": 21.897649
+  },
+  "letter_reversal_count": {
+    "mean": 0.741667,
+    "median": 1.0,
+    "std": 0.811335
+  },
+  "letter_spacing_variance": {
+    "mean": 0.330998,
+    "median": 0.329066,
+    "std": 0.145413
+  },
+  "mean_flight_time_ms": {
+    "mean": 130.219607,
+    "median": 132.050432,
+    "std": 32.33893
+  },
+  "mean_hold_time_ms": {
+    "mean": 99.011814,
+    "median": 99.307718,
+    "std": 23.149993
+  },
+  "pause_rate": {
+    "mean": 0.133429,
+    "median": 0.137264,
+    "std": 0.067471
+  },
+  "pressure_variability": {
+    "mean": 0.316304,
+    "median": 0.31319,
+    "std": 0.142047
+  },
+  "reading_probability": {
+    "mean": 0.324855,
+    "median": 0.153213,
+    "std": 0.338026
+  },
+  "reading_time_seconds": {
+    "mean": 74.131261,
+    "median": 74.785777,
+    "std": 22.583496
+  },
+  "regression_count": {
+    "mean": 6.416667,
+    "median": 6.0,
+    "std": 2.548147
+  },
+  "saccade_length_mean": {
+    "mean": 7.271165,
+    "median": 7.334184,
+    "std": 1.841997
+  },
+  "saccade_velocity_mean": {
+    "mean": 30.552099,
+    "median": 30.677451,
+    "std": 7.483679
+  },
+  "stroke_irregularity": {
+    "mean": 0.364189,
+    "median": 0.351206,
+    "std": 0.149792
+  },
+  "typing_probability": {
+    "mean": 0.321728,
+    "median": 0.140478,
+    "std": 0.376885
+  },
+  "typing_speed_wpm": {
+    "mean": 39.689562,
+    "median": 39.508995,
+    "std": 7.741637
+  },
+  "word_alignment_error": {
+    "mean": 0.233237,
+    "median": 0.234124,
+    "std": 0.126247
+  },
+  "writing_probability": {
+    "mean": 0.30719,
+    "median": 0.052067,
+    "std": 0.408492
+  }
+}
