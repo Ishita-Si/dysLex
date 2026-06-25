@@ -111,18 +111,28 @@ class DetectionIntelligenceEngine:
             "clinical_note": "Screening support only; not a medical diagnosis.",
         }
 
+_MODEL_ARTIFACT_CACHE: Dict[str, ModelArtifact] = {}
+
 
 def load_model_artifact(modality: str) -> ModelArtifact:
     """Load a trained model and threshold metadata without retraining."""
+
+    cached = _MODEL_ARTIFACT_CACHE.get(modality)
+    if cached is not None:
+        return cached
 
     base = CONFIG.models_dir / "mvp"
     model_path = base / f"{modality}_model.pkl"
     metadata_path = base / f"{modality}_threshold.json"
     if not model_path.exists() or not metadata_path.exists():
-        raise FileNotFoundError(f"Missing trained {modality} artifact in {base}. Run training outside inference before using this endpoint.")
+        raise FileNotFoundError(
+            f"Missing trained {modality} artifact in {base}. Run training outside inference before using this endpoint."
+        )
     with model_path.open("rb") as handle:
         model = pickle.load(handle)
-    return ModelArtifact(model=model, metadata=json.loads(metadata_path.read_text(encoding="utf-8")))
+    artifact = ModelArtifact(model=model, metadata=json.loads(metadata_path.read_text(encoding="utf-8")))
+    _MODEL_ARTIFACT_CACHE[modality] = artifact
+    return artifact
 
 
 def predict_probability(modality: str, payload: Mapping[str, float]) -> float:
