@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field
 
 from src.utils.config import CONFIG
 from src.processing.pipeline import extract_reading_features_from_audio
+from src.processing.typing_features import extract_typing_features
 
 app = FastAPI(
     title="DysLexAI MVP API",
@@ -46,6 +47,7 @@ def root() -> Dict[str, object]:
             "POST /predict-fusion",
             "POST /predict-full",
             "POST /predict-reading-audio",
+            "POST /predict-typing-keystrokes",
         ],
         "clinical_note": "Screening support only; not a medical diagnosis.",
     }
@@ -108,6 +110,10 @@ class FullAssessmentInput(BaseModel):
     writing: WritingInput
     typing: TypingInput
 
+class KeystrokeInput(BaseModel):
+    """Keystroke event stream request."""
+
+    events: List[Dict[str, object]]
 
 def _predict(modality: str, payload: Dict[str, float]) -> Dict[str, object]:
     """Run one MVP model and return a risk response."""
@@ -289,6 +295,24 @@ def predict_full(request: FullAssessmentInput) -> Dict[str, object]:
         "clinical_note": "Screening support only; not a medical diagnosis.",
     }
 
+@app.post("/predict-typing-keystrokes")
+async def predict_typing_keystrokes(
+    request: KeystrokeInput,
+) -> Dict[str, object]:
+    """Predict typing-based dyslexia risk from raw keystroke events."""
+
+    if not request.events:
+        raise HTTPException(status_code=400, detail="No keystroke events provided.")
+
+    try:
+        feature_payload = extract_typing_features(request.events)
+        return _predict("typing", feature_payload)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Keystroke feature extraction failed: {exc}",
+        ) from exc
+        
 @app.post("/predict-reading-audio")
 async def predict_reading_audio(
     file: UploadFile = File(...),
@@ -339,3 +363,4 @@ def _request_dict(request: BaseModel) -> Dict[str, float]:
     if hasattr(request, "model_dump"):
         return request.model_dump()
     return request.dict()
+
