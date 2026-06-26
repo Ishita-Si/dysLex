@@ -27,3 +27,9 @@ datasets/typing/*
 models/*
 !models/.gitkeep
 
+echo. >> .gitignore
+echo # Auto-generated reports and figures >> .gitignore
+echo reports/ >> .gitignore
+echo. >> .gitignore
+echo # Auto-generated processed datasets >> .gitignore
+echo datasets/processed/ >> .gitignore

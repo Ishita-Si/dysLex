@@ -4,14 +4,17 @@ from __future__ import annotations
 
 import json
 import pickle
-from typing import Dict, List
+import tempfile
+from pathlib import Path
+from typing import Dict, List, Optional
 
 import pandas as pd
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from src.utils.config import CONFIG
+from src.processing.pipeline import extract_reading_features_from_audio
 
 app = FastAPI(
     title="DysLexAI MVP API",
@@ -42,6 +45,7 @@ def root() -> Dict[str, object]:
             "POST /predict-typing",
             "POST /predict-fusion",
             "POST /predict-full",
+            "POST /predict-reading-audio",
         ],
         "clinical_note": "Screening support only; not a medical diagnosis.",
     }
@@ -285,6 +289,49 @@ def predict_full(request: FullAssessmentInput) -> Dict[str, object]:
         "clinical_note": "Screening support only; not a medical diagnosis.",
     }
 
+@app.post("/predict-reading-audio")
+async def predict_reading_audio(
+    file: UploadFile = File(...),
+    reference_text: Optional[str] = Form(None),
+) -> Dict[str, object]:
+    """Predict reading dyslexia risk from an uploaded audio file.
+
+    Transcribes the audio with Whisper, extracts gaze proxy features,
+    and passes them to the existing reading XGBoost model unchanged.
+    """
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file provided.")
+
+    suffix = Path(file.filename).suffix.lower()
+    allowed = {".wav", ".mp3", ".m4a", ".ogg", ".flac", ".webm", ".aac", ".mp4"}
+    if suffix not in allowed:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported file type '{suffix}'. Allowed: {allowed}",
+        )
+
+    tmp_path: Optional[Path] = None
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            tmp.write(await file.read())
+            tmp_path = Path(tmp.name)
+
+        feature_payload = extract_reading_features_from_audio(
+            audio_path=tmp_path,
+            reference_text=reference_text,
+        )
+        return _predict("reading", feature_payload)
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Audio processing failed: {exc}",
+        ) from exc
+    finally:
+        if tmp_path and tmp_path.exists():
+            tmp_path.unlink()
 
 def _request_dict(request: BaseModel) -> Dict[str, float]:
     """Return request data for Pydantic v1 and v2."""
