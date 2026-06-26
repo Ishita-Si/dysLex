@@ -1,4 +1,4 @@
-"""FastAPI inference endpoints for the DysLexAI MVP models."""
+"""FastAPI inference endpoints for the DysLexAI models."""
 
 from __future__ import annotations
 
