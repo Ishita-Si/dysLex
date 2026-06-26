@@ -14,7 +14,7 @@ DysLexAI is a multimodal dyslexia screening prototype. Phase 1 focuses on datase
 
 **Purpose:** Reading Behavior Analysis
 
-**Source:** Place ETDD70 files under datasets/reading/
+**Source:** ETDD70 files under datasets/reading/
 
 ### Class Distribution
 

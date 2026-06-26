@@ -22,6 +22,23 @@ This MVP model is optimized for dyslexia risk screening. It is not a medical dia
 
 fixation_duration_mean, fixation_duration_std, fixation_count, saccade_length_mean, saccade_velocity_mean, regression_count, reading_time_seconds, blink_rate
 
+## Accountability
+
+**Evidence level:** MVP prototype
+
+**Data provenance:**
+
+- real_component: ETDD70 participant labels from dyslexia_class_label.csv
+- synthetic_component: Generated realistic reading behavior features
+- current_status: MVP feature proxy, not raw gaze-derived clinical evidence
+
+**Known limitations:**
+
+- Not clinically validated.
+- Metrics are from MVP holdout data, not independent real-world validation.
+- Synthetic data can overstate model reliability.
+- Reading features are generated from label anchors rather than extracted from all raw ETDD70 gaze streams.
+
 ## Recall Priority
 
 The selected threshold prioritizes recall first, then F2 score, then ROC-AUC. False negatives are tracked explicitly because missing an at-risk learner is the highest-risk screening failure.

@@ -22,6 +22,23 @@ This MVP model is optimized for dyslexia risk screening. It is not a medical dia
 
 stroke_irregularity, letter_spacing_variance, baseline_drift, letter_reversal_count, word_alignment_error, pressure_variability
 
+## Accountability
+
+**Evidence level:** MVP prototype
+
+**Data provenance:**
+
+- real_component: Encrypted handwriting RAR is present but not extracted locally
+- synthetic_component: Generated realistic handwriting behavior features
+- current_status: Synthetic-only MVP proxy
+
+**Known limitations:**
+
+- Not clinically validated.
+- Metrics are from MVP holdout data, not independent real-world validation.
+- Synthetic data can overstate model reliability.
+- Real handwriting images are not yet used because the current archive is encrypted RAR.
+
 ## Recall Priority
 
 The selected threshold prioritizes recall first, then F2 score, then ROC-AUC. False negatives are tracked explicitly because missing an at-risk learner is the highest-risk screening failure.

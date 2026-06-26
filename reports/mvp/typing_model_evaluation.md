@@ -2,8 +2,8 @@
 
 This MVP model is optimized for dyslexia risk screening. It is not a medical diagnostic system.
 
-**Selected model:** random_forest
-**Selected threshold:** 0.20
+**Selected model:** calibrated_random_forest
+**Selected threshold:** 0.11
 
 ## Metrics
 
@@ -15,12 +15,29 @@ This MVP model is optimized for dyslexia risk screening. It is not a medical dia
 | specificity | 0.7083 |
 | f1 | 0.8727 |
 | f2 | 0.9449 |
-| roc_auc | 0.9462 |
+| roc_auc | 0.9514 |
 | false_negative | 0.0000 |
 
 ## Features
 
 mean_hold_time_ms, mean_flight_time_ms, pause_rate, backspace_rate, typing_speed_wpm, latency_variability_ms
+
+## Accountability
+
+**Evidence level:** MVP prototype
+
+**Data provenance:**
+
+- real_component: No real typing dataset currently available in workspace
+- synthetic_component: Generated realistic typing behavior features
+- current_status: Synthetic-only MVP proxy
+
+**Known limitations:**
+
+- Not clinically validated.
+- Metrics are from MVP holdout data, not independent real-world validation.
+- Synthetic data can overstate model reliability.
+- No real typing dataset has been integrated yet.
 
 ## Recall Priority
 
