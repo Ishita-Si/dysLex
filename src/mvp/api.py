@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 from src.utils.config import CONFIG
 from src.processing.pipeline import extract_reading_features_from_audio
 from src.processing.typing_features import extract_typing_features
+from src.processing.writing_features import extract_writing_features
 
 app = FastAPI(
     title="DysLexAI MVP API",
@@ -48,6 +49,7 @@ def root() -> Dict[str, object]:
             "POST /predict-full",
             "POST /predict-reading-audio",
             "POST /predict-typing-keystrokes",
+            "POST /predict-writing-image",
         ],
         "clinical_note": "Screening support only; not a medical diagnosis.",
     }
@@ -357,6 +359,49 @@ async def predict_reading_audio(
         if tmp_path and tmp_path.exists():
             tmp_path.unlink()
 
+@app.post("/predict-writing-image")
+async def predict_writing_image(
+    image_b64: Optional[str] = Form(None),
+    file: Optional[UploadFile] = File(None),
+) -> Dict[str, object]:
+    """Predict writing dyslexia risk from a canvas drawing or uploaded image.
+
+    Accepts either:
+    - A base64 PNG string from canvas.toDataURL() via form field image_b64
+    - A PNG/JPG file upload via multipart form
+    """
+    import base64 as b64lib
+
+    if not image_b64 and not file:
+        raise HTTPException(
+            status_code=400,
+            detail="Provide either image_b64 or a file upload.",
+        )
+
+    try:
+        if file:
+            # Handle file upload
+            allowed = {".png", ".jpg", ".jpeg"}
+            suffix = Path(file.filename).suffix.lower()
+            if suffix not in allowed:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Unsupported file type '{suffix}'. Allowed: {allowed}",
+                )
+            contents = await file.read()
+            image_b64 = b64lib.b64encode(contents).decode("utf-8")
+
+        feature_payload = extract_writing_features(image_b64)
+        return _predict("writing", feature_payload)
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Writing feature extraction failed: {exc}",
+        ) from exc
+    
 def _request_dict(request: BaseModel) -> Dict[str, float]:
     """Return request data for Pydantic v1 and v2."""
 
