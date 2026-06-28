@@ -339,8 +339,11 @@ async def predict_reading_audio(
 
     tmp_path: Optional[Path] = None
     try:
+        contents = await file.read()
+        if len(contents) > 25 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail="Audio file too large (max 25MB).")
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-            tmp.write(await file.read())
+            tmp.write(contents)
             tmp_path = Path(tmp.name)
 
         feature_payload = extract_reading_features_from_audio(
