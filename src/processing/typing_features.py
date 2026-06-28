@@ -50,6 +50,8 @@ def extract_typing_features(events: List[Dict[str, Any]]) -> Dict[str, float]:
             continue
 
         if event_type == "down":
+            if key in active_presses:
+                continue
             total_keypresses += 1
             if key in ["Backspace", "Delete"]:
                 backspace_count += 1
