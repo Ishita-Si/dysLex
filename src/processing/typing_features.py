@@ -77,8 +77,9 @@ def extract_typing_features(events: List[Dict[str, Any]]) -> Dict[str, float]:
     long_pauses = sum(1 for f in flight_times if f > 1000.0)
     pause_rate = float(long_pauses / len(flight_times)) if flight_times else 0.0
 
-    start_ts = float(events[0].get("ts", 0.0))
-    end_ts = float(events[-1].get("ts", 0.0))
+    timestamps = [t for t in (_safe_ts(ev) for ev in events) if t > 0.0]
+    start_ts = min(timestamps) if timestamps else 0.0
+    end_ts = max(timestamps) if timestamps else 0.0
     total_time_mins = ((end_ts - start_ts) / 1000.0) / 60.0
     chars_typed = total_keypresses - backspace_count
     typing_speed_wpm = (chars_typed / 5.0) / total_time_mins if total_time_mins > 0 else 0.0
