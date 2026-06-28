@@ -323,7 +323,7 @@ async def predict_reading_audio(
     """Predict reading dyslexia risk from an uploaded audio file.
 
     Transcribes the audio with Whisper, extracts gaze proxy features,
-    and passes them to the existing reading XGBoost model unchanged.
+    and passes them to the existing reading MVP model unchanged.
     """
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file provided.")
