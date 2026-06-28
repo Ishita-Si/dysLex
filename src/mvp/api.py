@@ -394,6 +394,8 @@ async def predict_writing_image(
                     detail=f"Unsupported file type '{suffix}'. Allowed: {allowed_list}",
                 )
             contents = await file.read()
+            if len(contents) > 10 * 1024 * 1024:
+                raise HTTPException(status_code=413, detail="Image file too large (max 10MB).")
             image_b64 = b64lib.b64encode(contents).decode("utf-8")
 
         feature_payload = extract_writing_features(image_b64)
