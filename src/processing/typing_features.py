@@ -32,12 +32,21 @@ def extract_typing_features(events: List[Dict[str, Any]]) -> Dict[str, float]:
     active_presses: Dict[str, float] = {}
     last_up_time: float | None = None
 
+    def _safe_ts(ev: Dict[str, Any]) -> float:
+        try:
+            ts_val = float(ev.get("ts", 0.0) or 0.0)
+        except (TypeError, ValueError):
+            return 0.0
+        return ts_val if math.isfinite(ts_val) else 0.0
+
+    events = sorted(events, key=_safe_ts)
+
     for ev in events:
         key = str(ev.get("key", ""))
         event_type = str(ev.get("type", "")).lower()
-        ts = float(ev.get("ts", 0.0))
+        ts = _safe_ts(ev)
 
-        if not key or ts == 0.0:
+        if not key or ts <= 0.0:
             continue
 
         if event_type == "down":
