@@ -27,4 +27,8 @@ datasets/typing/*
 models/*
 !models/.gitkeep
 
+# Auto-generated reports and figures
+reports/
 
+# Auto-generated processed datasets
+datasets/processed/

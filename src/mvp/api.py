@@ -4,14 +4,19 @@ from __future__ import annotations
 
 import json
 import pickle
-from typing import Dict, List
+import tempfile
+from pathlib import Path
+from typing import Dict, List, Optional
 
 import pandas as pd
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from src.utils.config import CONFIG
+from src.processing.pipeline import extract_reading_features_from_audio
+from src.processing.typing_features import extract_typing_features
+from src.processing.writing_features import extract_writing_features
 from src.mvp.intelligence import DetectionIntelligenceEngine, generate_baseline_reference
 
 app = FastAPI(
@@ -43,6 +48,9 @@ def root() -> Dict[str, object]:
             "POST /predict-typing",
             "POST /predict-fusion",
             "POST /predict-full",
+            "POST /predict-reading-audio",
+            "POST /predict-typing-keystrokes",
+            "POST /predict-writing-image",
             "POST /learning-profile",
             "POST /baseline-reference/regenerate",
         ],
@@ -107,6 +115,10 @@ class FullAssessmentInput(BaseModel):
     writing: WritingInput
     typing: TypingInput
 
+class KeystrokeInput(BaseModel):
+    """Keystroke event stream request."""
+
+    events: List[Dict[str, object]]
 
 def _predict(modality: str, payload: Dict[str, float]) -> Dict[str, object]:
     """Run one MVP model and return a risk response."""
@@ -285,7 +297,118 @@ def _learning_profile_response(request: FullAssessmentInput) -> Dict[str, object
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
+@app.post("/predict-typing-keystrokes")
+async def predict_typing_keystrokes(
+    request: KeystrokeInput,
+) -> Dict[str, object]:
+    """Predict typing-based dyslexia risk from raw keystroke events."""
 
+    if not request.events:
+        raise HTTPException(status_code=400, detail="No keystroke events provided.")
+
+    try:
+        feature_payload = extract_typing_features(request.events)
+        return _predict("typing", feature_payload)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Keystroke feature extraction failed: {exc}",
+        ) from exc
+        
+@app.post("/predict-reading-audio")
+async def predict_reading_audio(
+    file: UploadFile = File(...),
+    reference_text: Optional[str] = Form(None),
+) -> Dict[str, object]:
+    """Predict reading dyslexia risk from an uploaded audio file.
+
+    Transcribes the audio with Whisper, extracts gaze proxy features,
+    and passes them to the existing reading MVP model unchanged.
+    """
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file provided.")
+
+    suffix = Path(file.filename).suffix.lower()
+    allowed = {".wav", ".mp3", ".m4a", ".ogg", ".flac", ".webm", ".aac", ".mp4"}
+    if suffix not in allowed:
+        allowed_list = ", ".join(sorted(allowed))
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported file type '{suffix}'. Allowed: {allowed_list}",
+        )
+
+    tmp_path: Optional[Path] = None
+    try:
+        contents = await file.read()
+        if len(contents) > 25 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail="Audio file too large (max 25MB).")
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            tmp.write(contents)
+            tmp_path = Path(tmp.name)
+
+        feature_payload = extract_reading_features_from_audio(
+            audio_path=tmp_path,
+            reference_text=reference_text,
+        )
+        return _predict("reading", feature_payload)
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Audio processing failed: {exc}",
+        ) from exc
+    finally:
+        if tmp_path and tmp_path.exists():
+            tmp_path.unlink()
+
+@app.post("/predict-writing-image")
+async def predict_writing_image(
+    image_b64: Optional[str] = Form(None),
+    file: Optional[UploadFile] = File(None),
+) -> Dict[str, object]:
+    """Predict writing dyslexia risk from a canvas drawing or uploaded image.
+
+    Accepts either:
+    - A base64 PNG string from canvas.toDataURL() via form field image_b64
+    - A PNG/JPG file upload via multipart form
+    """
+    import base64 as b64lib
+
+    if not image_b64 and not file:
+        raise HTTPException(
+            status_code=400,
+            detail="Provide either image_b64 or a file upload.",
+        )
+
+    try:
+        if file:
+            # Handle file upload
+            allowed = {".png", ".jpg", ".jpeg"}
+            suffix = Path(file.filename).suffix.lower()
+            if suffix not in allowed:
+                allowed_list = ", ".join(sorted(allowed))
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Unsupported file type '{suffix}'. Allowed: {allowed_list}",
+                )
+            contents = await file.read()
+            if len(contents) > 10 * 1024 * 1024:
+                raise HTTPException(status_code=413, detail="Image file too large (max 10MB).")
+            image_b64 = b64lib.b64encode(contents).decode("utf-8")
+
+        feature_payload = extract_writing_features(image_b64)
+        return _predict("writing", feature_payload)
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Writing feature extraction failed: {exc}",
+        ) from exc
+    
 def _request_dict(request: BaseModel) -> Dict[str, float]:
     """Return request data for Pydantic v1 and v2."""
 
