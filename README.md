@@ -6,7 +6,7 @@ Important: DysLexAI is a screening and support tool. It is not a medical diagnos
 
 ## Current Focus
 
-The current implementation prioritizes a working end-to-end MVP pipeline .
+The current implementation prioritizes a working end-to-end MVP pipeline.
 
 It trains lightweight tabular models for:
 
@@ -37,6 +37,7 @@ DysLexAI/
 |-- src/
 |   |-- mvp/
 |   |   |-- api.py
+|   |   |-- intelligence.py
 |   |   |-- manual_tests.py
 |   |   |-- synthetic_data.py
 |   |   `-- training.py
@@ -135,12 +136,9 @@ The Phase 1 pipeline produces:
 - Research-grade markdown documentation with natural-language observations.
 - Placeholder figures when datasets have not yet been placed.
 
-
 ## Phase 2.5 Detection Intelligence Layer
 
-Phase 2.5 turns trained model probabilities into a complete inference response for dashboards and downstream intervention systems. It does **not** retrain models. Instead, it loads the existing trained reading, writing, typing, and fusion model artifacts from `models/mvp/`.
-
-The intelligence layer now generates:
+Phase 2.5 turns trained model probabilities into a complete inference response for dashboards and downstream intervention systems. It does **not** retrain models. Instead, it loads the existing trained artifacts and generates:
 
 - reading, writing, typing, and fused risk probabilities
 - overall risk level and confidence
@@ -231,9 +229,7 @@ See `reports/detection_intelligence_layer.md` for implementation details.
 
 ## MVP Training Pipeline
 
-The MVP pipeline trains quick, recall-first screening models for reading,
-writing, typing, and multimodal fusion using compact real-anchored and
-synthetic realistic features.
+The MVP pipeline trains quick, recall-first screening models for reading, writing, typing, and multimodal fusion using compact real-anchored and synthetic realistic features.
 
 Run:
 
@@ -267,6 +263,8 @@ Available endpoints:
 - `POST /predict-typing`
 - `POST /predict-fusion`
 - `POST /predict-full`
+- `POST /learning-profile`
+- `POST /baseline-reference/regenerate`
 
 Open the demo frontend after starting the API:
 
@@ -274,9 +272,7 @@ Open the demo frontend after starting the API:
 frontend/index.html
 ```
 
-MVP note: writing and typing features are synthetic realistic features until
-extractable real datasets are available. The MVP is for screening workflow
-development and is not a diagnostic system.
+MVP note: writing and typing features are synthetic realistic features until extractable real datasets are available. The MVP is for screening workflow development and is not a diagnostic system.
 
 Manual test payloads are available in:
 
@@ -286,17 +282,16 @@ datasets/manual_tests/
 
 Each modality has low-risk, moderate-risk, and high-risk examples.
 
+## References
 
-cited ASSOCIATED PAPER:
+### Associated papers
 
-M. S. A. B. Rosli, I. S. Isa, S. A. Ramlan, S. N. Sulaiman and M. I. F. Maruzuki, "Development of CNN Transfer Learning for Dyslexia Handwriting Recognition," 2021 11th IEEE International Conference on Control System, Computing and Engineering (ICCSCE), 2021, pp. 194-199, doi: 10.1109/ICCSCE52189.2021.9530971.
-N. S. L. Seman, I. S. Isa, S. A. Ramlan, W. Li-Chih and M. I. F. Maruzuki, "Notice of Removal: Classification of Handwriting Impairment Using CNN for Potential Dyslexia Symptom," 2021 11th IEEE International Conference on Control System, Computing and Engineering (ICCSCE), 2021, pp. 188-193, doi: 10.1109/ICCSCE52189.2021.9530989.
-Isa, Iza Sazanita. CNN Comparisons Models On Dyslexia Handwriting Classification / Iza Sazanita Isa … [et Al.]. Universiti Teknologi MARA Cawangan Pulau Pinang, 2021.
-Isa, I. S., Rahimi, W. N. S., Ramlan, S. A., & Sulaiman, S. N. (2019). Automated detection of dyslexia symptom based on handwriting image for primary school children. Procedia Computer Science, 163, 440-449.
-Sedmidubsky, J., Dostalova, N., Svaricek, R., & Culemann, W. (2024). ETDD70: Eye-tracking dataset for classification of dyslexia using AI-based methods. In Proceedings of the 17th International Conference on Similarity Search and Applications (SISAP) (pp. 1-14). Springer.
+- M. S. A. B. Rosli, I. S. Isa, S. A. Ramlan, S. N. Sulaiman, and M. I. F. Maruzuki, "Development of CNN Transfer Learning for Dyslexia Handwriting Recognition," 2021 11th IEEE International Conference...
+- N. S. L. Seman, I. S. Isa, S. A. Ramlan, W. Li-Chih, and M. I. F. Maruzuki, "Notice of Removal: Classification of Handwriting Impairment Using CNN for Potential Dyslexia Symptom," 2021 11th IEEE...
+- Isa, Iza Sazanita. *CNN Comparisons Models On Dyslexia Handwriting Classification* / Iza Sazanita Isa … [et Al.]. Universiti Teknologi MARA Cawangan Pulau Pinang, 2021.
+- Isa, I. S., Rahimi, W. N. S., Ramlan, S. A., & Sulaiman, S. N. (2019). Automated detection of dyslexia symptom based on handwriting image for primary school children. *Procedia Computer Science*.
+- Sedmidubsky, J., Dostalova, N., Svaricek, R., & Culemann, W. (2024). ETDD70: Eye-tracking dataset for classification of dyslexia using AI-based methods.
 
-CITED DATASET
+### Cited dataset
 
-Dostalova, N., Svaricek, R., Sedmidubsky, J., Culemann, W., Sasinka, C., Zezula, P., & Cenek, J. (2024). ETDD70: Eye-tracking Dyslexia Dataset [Data set]. Zenodo. https://doi.org/10.5281/zenodo.13332134
- 
-
+- Dostalova, N., Svaricek, R., Sedmidubsky, J., Culemann, W., Sasinka, C., Zezula, P., & Cenek, J. (2024). ETDD70: Eye-tracking Dyslexia Dataset [Data set]. Zenodo. https://doi.org/10.5281/zenodo.1...
