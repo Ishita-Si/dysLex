@@ -485,6 +485,12 @@ function WritingInputCard({ form, updateField }) {
     updateField('handwritingMimeType', '');
   };
 
+  const safePreviewUrl =
+    typeof previewUrl === 'string' &&
+    (previewUrl.startsWith('blob:') || previewUrl.startsWith('data:image/'))
+      ? previewUrl
+      : '';
+
   return (
     <section className="rounded-lg border border-slate-200 bg-slate-50 p-4">
       <div className="mb-3">
@@ -534,7 +540,7 @@ function WritingInputCard({ form, updateField }) {
             Clear
           </button>
         </div>
-        {previewUrl && <img className="mt-3 max-h-28 rounded-md border border-slate-200 bg-white object-contain" src={previewUrl} alt="Saved handwriting preview" />}
+        {safePreviewUrl && <img className="mt-3 max-h-28 rounded-md border border-slate-200 bg-white object-contain" src={safePreviewUrl} alt="Saved handwriting preview" />}
       </div>
 
       <label className="field mt-3">
