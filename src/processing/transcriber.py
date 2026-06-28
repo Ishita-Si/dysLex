@@ -81,25 +81,33 @@ def _get_model(
     """
 
     cache_key = (model_size, device, compute_type)
+
+    import threading
+    if not hasattr(_get_model, "_lock"):
+        _get_model._lock = threading.Lock()  # type: ignore[attr-defined]
+    lock = _get_model._lock  # type: ignore[attr-defined]
+
     if cache_key not in _MODEL_CACHE:
-        try:
-            from faster_whisper import WhisperModel  # type: ignore
-        except ImportError as exc:
-            raise RuntimeError(
-                "faster-whisper is not installed. "
-                "Run: pip install faster-whisper"
-            ) from exc
+        with lock:
+            if cache_key not in _MODEL_CACHE:
+                try:
+                    from faster_whisper import WhisperModel  # type: ignore
+                except ImportError as exc:
+                    raise RuntimeError(
+                        "faster-whisper is not installed. "
+                        "Run: pip install faster-whisper"
+                    ) from exc
 
-        # Suppress verbose CTranslate2 / HuggingFace download logs
-        # unless the user explicitly set a log level.
-        if "CT2_VERBOSE" not in os.environ:
-            os.environ.setdefault("CT2_VERBOSE", "0")
+                # Suppress verbose CTranslate2 / HuggingFace download logs
+                # unless the user explicitly set a log level.
+                if "CT2_VERBOSE" not in os.environ:
+                    os.environ.setdefault("CT2_VERBOSE", "0")
 
-        _MODEL_CACHE[cache_key] = WhisperModel(
-            model_size,
-            device=device,
-            compute_type=compute_type,
-        )
+                _MODEL_CACHE[cache_key] = WhisperModel(
+                    model_size,
+                    device=device,
+                    compute_type=compute_type,
+                )
 
     return _MODEL_CACHE[cache_key]
 
