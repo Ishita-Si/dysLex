@@ -108,7 +108,7 @@ def _get_model(
 
 def transcribe(
     audio_path: str | Path,
-    language: str = "en",
+    language: str | None = "en",
     model_size: str = _DEFAULT_MODEL_SIZE,
 ) -> List[WordTimestamp]:
     """Transcribe an audio file and return word-level timestamps.
