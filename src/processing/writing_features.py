@@ -9,7 +9,7 @@ A base64-encoded PNG string from the browser canvas element.
 
 Output
 ------
-A dict with exactly the 6 features the writing XGBoost model expects:
+A dict with exactly the 6 features the writing MVP model expects:
     stroke_irregularity
     letter_spacing_variance
     baseline_drift
