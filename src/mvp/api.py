@@ -331,9 +331,10 @@ async def predict_reading_audio(
     suffix = Path(file.filename).suffix.lower()
     allowed = {".wav", ".mp3", ".m4a", ".ogg", ".flac", ".webm", ".aac", ".mp4"}
     if suffix not in allowed:
+        allowed_list = ", ".join(sorted(allowed))
         raise HTTPException(
             status_code=400,
-            detail=f"Unsupported file type '{suffix}'. Allowed: {allowed}",
+            detail=f"Unsupported file type '{suffix}'. Allowed: {allowed_list}",
         )
 
     tmp_path: Optional[Path] = None
