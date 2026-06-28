@@ -8,8 +8,8 @@ from typing import List, Dict, Any
 
 
 def extract_typing_features(events: List[Dict[str, Any]]) -> Dict[str, float]:
-    """Analyze a standardized stream of keystroke events to compute 
-    timing, pause variations, and error rates for the XGBoost model.
+    """Analyze a standardized stream of keystroke events to compute
+    timing, pause variations, and error rates for the typing MVP model.
     """
     default_payload = {
         "mean_hold_time_ms": 0.0,
