@@ -508,7 +508,7 @@ function WritingInputCard({ form, updateField }) {
             updateField('handwritingFileName', file?.name || '');
             updateField('handwritingSource', file ? 'upload' : '');
             updateField('handwritingMimeType', file?.type || '');
-            setPreviewUrl(file ? URL.createObjectURL(file) : '');
+            setPreviewUrl('');
           }}
         />
         <span className="text-sm font-black text-slate-800">{form.handwritingFileName || 'Choose PNG/JPG'}</span>
