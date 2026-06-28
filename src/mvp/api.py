@@ -388,9 +388,10 @@ async def predict_writing_image(
             allowed = {".png", ".jpg", ".jpeg"}
             suffix = Path(file.filename).suffix.lower()
             if suffix not in allowed:
+                allowed_list = ", ".join(sorted(allowed))
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Unsupported file type '{suffix}'. Allowed: {allowed}",
+                    detail=f"Unsupported file type '{suffix}'. Allowed: {allowed_list}",
                 )
             contents = await file.read()
             image_b64 = b64lib.b64encode(contents).decode("utf-8")
