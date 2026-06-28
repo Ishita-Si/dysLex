@@ -135,6 +135,90 @@ The Phase 1 pipeline produces:
 - Research-grade markdown documentation with natural-language observations.
 - Placeholder figures when datasets have not yet been placed.
 
+
+## Phase 2.5 Detection Intelligence Layer
+
+Phase 2.5 turns trained model probabilities into a complete inference response for dashboards and downstream intervention systems. It does **not** retrain models. Instead, it loads the existing trained reading, writing, typing, and fusion model artifacts from `models/mvp/`.
+
+The intelligence layer now generates:
+
+- reading, writing, typing, and fused risk probabilities
+- overall risk level and confidence
+- modality severity scores
+- non-dyslexic reference-baseline comparison
+- rule-based learning weaknesses
+- learning-profile dimensions
+- plain-English top contributing factors
+- intervention category identifiers only, not exercises
+
+Generate or refresh the non-dyslexic reference baseline from processed feature tables:
+
+```bash
+python -m src.mvp.intelligence
+```
+
+This writes:
+
+```text
+models/mvp/baseline_reference.json
+```
+
+The baseline contains the mean, median, and standard deviation for every numeric feature among rows with `label == 0`.
+
+Start the API after trained model artifacts exist:
+
+```bash
+uvicorn src.mvp.api:app --reload
+```
+
+Phase 2.5 endpoints:
+
+- `POST /predict-full` returns the complete learning-profile response.
+- `POST /learning-profile` is an explicit alias for dashboard and intervention consumers.
+- `POST /baseline-reference/regenerate` recalculates `baseline_reference.json` from processed data.
+
+The final response shape is:
+
+```json
+{
+  "overall_risk": {
+    "score": 0.84,
+    "level": "High",
+    "confidence": 0.91
+  },
+  "modality_scores": {
+    "reading": 0.88,
+    "writing": 0.74,
+    "typing": 0.69
+  },
+  "baseline_comparison": {
+    "reading_time_seconds": {
+      "user": 110,
+      "reference_mean": 74.13,
+      "difference": 35.87,
+      "severity": "Moderate"
+    }
+  },
+  "learning_profile": {
+    "reading_fluency": "High",
+    "letter_reversal": "Moderate",
+    "spelling_accuracy": "Moderate",
+    "typing_accuracy": "Low",
+    "phonological_processing": "High"
+  },
+  "top_contributing_factors": [
+    "Reading completion time is above the reference baseline."
+  ],
+  "recommended_modules": [
+    "reading_fluency_training",
+    "letter_reversal_training",
+    "phonics_training"
+  ]
+}
+```
+
+See `reports/detection_intelligence_layer.md` for implementation details.
+
 ## Future Development Roadmap
 
 1. Add real datasets and rerun Phase 1 validation.
