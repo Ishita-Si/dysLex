@@ -1,9 +1,6 @@
 export const defaultAssessment = {
   name: 'Aarav Mehta',
   age: 9,
-  readingCase: 'full_moderate_risk',
-  writingCase: 'full_moderate_risk',
-  typingCase: 'full_moderate_risk',
   audioFileName: '',
   audioSource: '',
   audioMimeType: '',
